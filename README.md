@@ -1,6 +1,6 @@
 # Alarm-project-
 
-/* alarm_project_basic_start.c
+/*  alarm_project_basic_start.c
    Step 1: LCD + Keypad test
    ATmega16 – AVR-GCC
    This is just the first step of the alarm system project.
