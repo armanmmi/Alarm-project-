@@ -1,9 +1,6 @@
-# Alarm-project-
-
-/*  alarm_project_basic_start.c
-   Step 1: LCD + Keypad test
+/* Alarm Project – (Unified)
    ATmega16 – AVR-GCC
-   This is just the first step of the alarm system project.
+   LCD + Keypad + Password Set/Check
 */
 
 #define F_CPU 1000000UL
@@ -25,7 +22,9 @@
 #define KEYPAD_PIN  PINA
 #define KEYPAD_DDR  DDRA
 
-// --- LCD functions ---
+// --------------------------------------------------
+// LCD FUNCTIONS
+// --------------------------------------------------
 void lcd_pulse()
 {
     LCD_PORT |= (1<<EN);
@@ -81,7 +80,9 @@ void lcd_init()
     lcd_cmd(0x01);
 }
 
-// --- Keypad ---
+// --------------------------------------------------
+// KEYPAD FUNCTION
+// --------------------------------------------------
 char keypad_scan()
 {
     const char keys[4][4] = {
@@ -115,25 +116,64 @@ char keypad_scan()
     return 0;
 }
 
-// --- MAIN ---
 int main(void)
 {
+    // Keypad init
     KEYPAD_DDR = 0xF0;
     KEYPAD_PORT = 0x0F;
 
+    // LCD init
     lcd_init();
-    lcd_puts("Keypad + LCD");
-    _delay_ms(1000);
+
+    // --------------------- (LCD + Keypad Test) ---------------------
+    lcd_puts("Keypad + LCD OK");
+    _delay_ms(1200);
     lcd_cmd(0x01);
 
-    while (1)
+    // ---------------------  (Password Logic) ---------------------
+    char password[4];
+    char input[4];
+
+    // ---- Step 1: Set password ----
+    lcd_cmd(0x01);
+    lcd_puts("Set Pass:");
+
+    for (uint8_t i=0; i<4; i++)
     {
-        char k = keypad_scan();
-        if (k)
-        {
-            lcd_cmd(0x01);
-            lcd_putc(k);
-            _delay_ms(250);
-        }
+        char k = 0;
+        while (!k) k = keypad_scan();  // wait for key
+        password[i] = k;
+        lcd_putc('*');
+        _delay_ms(300);
     }
+
+    _delay_ms(800);
+    lcd_cmd(0x01);
+
+    // ---- Step 2: Ask for input ----
+    lcd_puts("Enter Pass:");
+
+    for (uint8_t i=0; i<4; i++)
+    {
+        char k = 0;
+        while (!k) k = keypad_scan();
+        input[i] = k;
+        lcd_putc('*');
+        _delay_ms(300);
+    }
+
+    lcd_cmd(0x01);
+
+    // ---- Step 3: Compare ----
+    uint8_t match = 1;
+    for (uint8_t i=0; i<4; i++)
+        if (input[i] != password[i])
+            match = 0;
+
+    if (match)
+        lcd_puts("Correct!");
+    else
+        lcd_puts("Wrong!");
+
+    while(1);
 }
